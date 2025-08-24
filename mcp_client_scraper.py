@@ -128,43 +128,23 @@ class MCPClient:
                 - Sanitize inputs
                 - Implement reasonable limits on nested scraping depth
 
-                {context_section}
-
                 Answer with this json schema
 
                     "text": Your response to the user
-                    "results_json_file_path": Path to the JSON file containing the results
-                    "summary": this is summary of what are you doing previously (including previous history chat summary, please also include anything like files you created and the description such as script, html and so on and also the url you scraped and json file result if exist)
+                    "results_json_file_path": Path to the JSON file containing the results, please don't include system information like the filename of html or json or python script file path inside this json file
+                    "summary": this is summary of what are you doing previously (including previous history chat summary, structure of the results_json_file_path, please also include anything like files you created and the description such as script, html and so on and also the url you scraped and json file result if exist)
 
         """
-
-        self.session_summary = dict()
-
-    def _create_prompt_template(self, previous_summary=None):
+    def _create_prompt_template(self):
         """
         Create a prompt template with optional session context.
-        
-        Args:
-            previous_summary (dict): Previous session summary to include in context
             
         Returns:
             ChatPromptTemplate: Configured prompt template
         """
-        if previous_summary:
-            context_section = f"""
-                ## Session Context:
-                Previous session summary: {previous_summary}
-                
-                Please consider this previous context when processing the current request. You can reference previous files, URLs scraped, and any patterns or scripts that were created in the previous session.
-                """
-        else:
-            # context_section = "## Session Context:\nThis is a new session with no previous context."
-            context_section = ""
-        
-        system_prompt = self.base_system_prompt.format(context_section=context_section)
         
         return ChatPromptTemplate.from_messages([
-            SystemMessagePromptTemplate.from_template(system_prompt),
+            SystemMessagePromptTemplate.from_template(self.base_system_prompt),
             ("placeholder", "{messages}")
         ])
 
@@ -181,10 +161,6 @@ class MCPClient:
         """
         if session_id == None:
             session_id = str(uuid.uuid4().hex)
-        
-        previous_summary = None
-        # if session_id in self.session_summary:
-        #     previous_summary = self.session_summary[session_id]
 
         summarization_node = SummarizationNode( 
             token_counter=count_tokens_approximately,
@@ -195,7 +171,7 @@ class MCPClient:
         )
         
         # Create prompt template with session context
-        prompt_template = self._create_prompt_template(previous_summary)
+        prompt_template = self._create_prompt_template()
 
         async with stdio_client(self.server_params) as (read, write):
             async with ClientSession(read, write) as session:
@@ -214,12 +190,6 @@ class MCPClient:
                     checkpointer=self.in_memory_saver,
                 )
                 logger.info("ReAct Agent Created.")
-                
-                if previous_summary:
-                    logger.info(f"Using previous session context for session: {session_id}")
-                else:
-                    logger.info(f"Starting new session: {session_id}")
-                
                 logger.info(f"Invoking agent with query")
                 
                 response = await agent.ainvoke({
@@ -235,9 +205,9 @@ class MCPClient:
                     logger.error("Failed to parse JSON content.")
                     return {"error": "Failed to parse JSON content.", "session_id": session_id}
                 
-                # Update session summary
-                self.session_summary[session_id] = json_content.get("summary", {})
+                # Update session id
                 json_content["session_id"] = session_id
+                logger.info(f"Session ID: {session_id} has summary {json_content.get('summary', {})}")
                 return json_content
 
     async def run_agent(self):

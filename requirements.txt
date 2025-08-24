@@ -10,3 +10,4 @@ python-dotenv
 pydantic-ai-slim[openai]
 pydantic-ai-slim[groq]
 Flask
+langmem

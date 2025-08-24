@@ -13,6 +13,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()  # Keep console output as well
+    ]
+)
+logger = logging.getLogger(__name__)
 
 class MCPClient:
     def __init__(self, model_type="openai", temperature=0):
@@ -140,32 +149,32 @@ class MCPClient:
         async with stdio_client(self.server_params) as (read, write):
             async with ClientSession(read, write) as session:
                 await session.initialize()
-                print("MCP Session Initialized.")
+                logger.info("MCP Session Initialized.")
                 
                 tools = await load_mcp_tools(session)
-                print(f"Loaded Tools: {[tool.name for tool in tools]}")
+                logger.info(f"Loaded Tools: {[tool.name for tool in tools]}")
                 
                 agent = create_react_agent(self.model, tools, prompt=prompt_template)
-                print("ReAct Agent Created.")
+                logger.info("ReAct Agent Created.")
                 
                 if previous_summary:
-                    print(f"Using previous session context for session: {session_id}")
+                    logger.info(f"Using previous session context for session: {session_id}")
                 else:
-                    print(f"Starting new session: {session_id}")
+                    logger.info(f"Starting new session: {session_id}")
                 
-                print(f"Invoking agent with query")
+                logger.info(f"Invoking agent with query")
                 
                 response = await agent.ainvoke({
                     "messages": [("user", user_input)]
                 })
                 content = response["messages"][-1].content
-                print("Agent invocation complete.")
+                logger.info("Agent invocation complete.")
                 
                 # Parse JSON content
                 try:
                     json_content = json.loads(content)
                 except json.JSONDecodeError:
-                    print("Failed to parse JSON content.")
+                    logger.error("Failed to parse JSON content.")
                     return {"error": "Failed to parse JSON content.", "session_id": session_id}
                 
                 # Update session summary
@@ -191,7 +200,7 @@ def main():
     """Main function to run the MCP client with default configuration."""
     client = MCPClient()
     
-    print("Starting MCP Client...")
+    logger.info("Starting MCP Client...")
     
     # Default query for demonstration
     default_query = """
@@ -202,8 +211,8 @@ def main():
     
     result = asyncio.run(client.invoke_query(default_query))
     
-    print("\nAgent Final Response:")
-    print(result)
+    logger.info("Agent Final Response:")
+    logger.info(result)
 
 
 if __name__ == "__main__":

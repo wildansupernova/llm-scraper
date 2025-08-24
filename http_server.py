@@ -43,7 +43,6 @@ def chats():
     session_id = data.get('session_id') if data.get('session_id') else None
 
     response = asyncio.run(process_request(text_input, session_id=session_id))
-    print(response.get("results_json_file_path", "[]"))
     return jsonify({
         "text": response.get("text", text_input),
         "results": json.loads(read_file_content(response.get("results_json_file_path", "[]"))),

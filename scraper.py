@@ -36,7 +36,9 @@ async def scrape_url_to_file(url: str) -> str:
     try:
         async with AsyncWebCrawler() as crawler:
             result = await crawler.arun(url=url)
-            
+            if not result.success:
+                logger.error(f"Error scraping URL {url}: {result.error_message}")
+                return f"Error scraping URL {url} with status code {result.status_code}: {result.error_message}"
             # Generate a unique filename using UUID
             filename = f"{uuid.uuid4().hex}.html"
             file_path = os.path.abspath("temp/"+filename)

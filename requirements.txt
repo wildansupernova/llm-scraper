@@ -1,13 +1,10 @@
+crawl4ai
 mcp
 langchain-mcp-adapters
 langgraph
 langchain-groq
 langchain-openai
-crawl4ai
-httpx
-pydantic-ai
-python-dotenv
-pydantic-ai-slim[openai]
-pydantic-ai-slim[groq]
-Flask
 langmem
+httpx
+python-dotenv
+Flask

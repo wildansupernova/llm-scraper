@@ -7,3 +7,6 @@ crawl4ai
 httpx
 pydantic-ai
 python-dotenv
+pydantic-ai-slim[openai]
+pydantic-ai-slim[groq]
+Flask

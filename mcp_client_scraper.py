@@ -6,13 +6,9 @@ from langchain_core.prompts import SystemMessagePromptTemplate, HumanMessageProm
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 from langmem.short_term import SummarizationNode, RunningSummary
-from typing import Any
 from langchain_core.messages.utils import count_tokens_approximately
 from langgraph.prebuilt.chat_agent_executor import AgentState
 from langgraph.checkpoint.memory import InMemorySaver
-
-import asyncio
-import os
 import json
 import uuid
 from dotenv import load_dotenv
@@ -161,6 +157,10 @@ class MCPClient:
         """
         if session_id == None:
             session_id = str(uuid.uuid4().hex)
+        
+        config = {"configurable": {"thread_id": session_id}}
+        
+        is_new_session = self.in_memory_saver.get(config) == None
 
         summarization_node = SummarizationNode( 
             token_counter=count_tokens_approximately,
@@ -207,41 +207,6 @@ class MCPClient:
                 
                 # Update session id
                 json_content["session_id"] = session_id
+                json_content["is_new_session"] = is_new_session
                 logger.info(f"Session ID: {session_id} has summary {json_content.get('summary', {})}")
                 return json_content
-
-    async def run_agent(self):
-        """
-        Legacy method for backward compatibility.
-        Runs the agent with a predefined query.
-        """
-        user_input = """
-        From the URL (https://medrecruit.medworld.com/jobs/list?location=New+South+Wales&page=1), get the role, specialty, location, and pay of jobs from page 1-3.
-
-        Please include which page is the data exist
-        """
-        
-        return await self.invoke_query(user_input)
-
-
-def main():
-    """Main function to run the MCP client with default configuration."""
-    client = MCPClient()
-    
-    logger.info("Starting MCP Client...")
-    
-    # Default query for demonstration
-    default_query = """
-    From the URL (https://medrecruit.medworld.com/jobs/list?location=New+South+Wales&page=1), get the role, specialty, location, and pay of jobs from page 1-3.
-
-    Please include which page is the data exist
-    """
-    
-    result = asyncio.run(client.invoke_query(default_query))
-    
-    logger.info("Agent Final Response:")
-    logger.info(result)
-
-
-if __name__ == "__main__":
-    main()

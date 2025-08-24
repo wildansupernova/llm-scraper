@@ -34,7 +34,7 @@ def read_file_content(file_path: str) -> str:
         return content
         
     except Exception as e:
-        return f"Error reading file: {str(e)}"
+        raise Exception(f"Error reading file: {str(e)}")
 
 @app.route('/chats', methods=['POST'])
 def chats():
@@ -46,7 +46,8 @@ def chats():
     return jsonify({
         "text": response.get("text", text_input),
         "results": json.loads(read_file_content(response.get("results_json_file_path", "[]"))),
-        "session_id": session_id
+        "session_id": session_id,
+        "is_new_session": response.get("is_new_session", True)
     })
 
 if __name__ == '__main__':

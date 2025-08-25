@@ -34,7 +34,7 @@ async def scrape_url_to_file(url: str) -> str:
     """
     logger.info(f"Starting scrape_url_to_file with URL: {url}")
     try:
-        browser_config = BrowserConfig(headless=False)  # Default browser configuration
+        browser_config = BrowserConfig()  # Default browser configuration
         run_config = CrawlerRunConfig(
             delay_before_return_html=5,
             keep_data_attributes=True,

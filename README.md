@@ -1,5 +1,13 @@
 # LLM Scraper
 
+# Technology Used
+- Langgraph
+- Python 3
+- Model Used: gpt-5-mini (please change this to gpt-5 if you have budget for better crawling)
+- Crawl4AI as the browser.
+- MCP
+- Flask
+
 ## How to Install
 
 1. **Clone the repository:**

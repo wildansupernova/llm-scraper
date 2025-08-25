@@ -21,20 +21,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
-browser_config = BrowserConfig(
-            headless=True,  
-            java_script_enabled=True,
-            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/116.0.0.0 Safari/537.36"
-        )  
-run_config = CrawlerRunConfig(
-    delay_before_return_html=5,
-    wait_until="networkidle",  # Wait until network is idle
-    page_timeout=30000,  # 30 second timeout for page load
-    js_code=["window.scrollTo(0, document.body.scrollHeight);"]  # Scroll to bottom to trigger lazy loading
-) 
-
-
 @mcp.tool()
 async def scrape_url_to_file(url: str) -> str:
     """
@@ -48,8 +34,16 @@ async def scrape_url_to_file(url: str) -> str:
     """
     logger.info(f"Starting scrape_url_to_file with URL: {url}")
     try:
-        async with AsyncWebCrawler(config=browser_config) as crawler:
-            result = await crawler.arun(url=url, run_config=run_config)
+        browser_config = BrowserConfig(headless=False)  # Default browser configuration
+        run_config = CrawlerRunConfig(
+            delay_before_return_html=5,
+            keep_data_attributes=True,
+            keep_attrs=["class", "id"]
+        ) 
+        async with AsyncWebCrawler(
+            config=browser_config
+        ) as crawler:
+            result = await crawler.arun(url=url, config=run_config)
             if not result.success:
                 logger.error(f"Error scraping URL {url}: {result.error_message}")
                 return f"Error scraping URL {url} with status code {result.status_code}`: {result.error_message}"

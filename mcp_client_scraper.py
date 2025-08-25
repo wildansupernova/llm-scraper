@@ -28,29 +28,8 @@ logger = logging.getLogger(__name__)
 class State(AgentState):
     context: dict[str, RunningSummary]  
 
-class MCPClient:
-    def __init__(self, model_type="openai", temperature=0):
-        """
-        Initialize the MCP Client with specified model configuration.
-        
-        Args:
-            model_type (str): Type of model to use ("openai" or "groq")
-            temperature (float): Temperature setting for the model
-        """
-        # Initialize the LLM model
-        if model_type == "groq":
-            self.model = ChatGroq(model="llama3-8b-8192", temperature=temperature)
-        else:
-            self.model = ChatOpenAI(model="gpt-5-mini", temperature=temperature)
-        
-        self.server_params = StdioServerParameters(
-            command="python",
-            args=["scraper.py"]
-        )
-        self.in_memory_saver = InMemorySaver()
 
-        # Define the base system prompt
-        self.base_system_prompt = """
+base_prompt = """
                 # Web Scraping Assistant
 
                 You are a web scraping specialist with access to these tools:
@@ -131,6 +110,30 @@ class MCPClient:
                     "summary": this is summary of what are you doing previously (including previous history chat summary, structure of the results_json_file_path, please also include anything like files you created and the description such as script, html and so on and also the url you scraped and json file result if exist)
 
         """
+
+class MCPClient:
+    def __init__(self, model_type="openai", temperature=0):
+        """
+        Initialize the MCP Client with specified model configuration.
+        
+        Args:
+            model_type (str): Type of model to use ("openai" or "groq")
+            temperature (float): Temperature setting for the model
+        """
+        # Initialize the LLM model
+        if model_type == "groq":
+            self.model = ChatGroq(model="llama3-8b-8192", temperature=temperature)
+        else:
+            self.model = ChatOpenAI(model="gpt-5-mini", temperature=temperature)
+        
+        self.server_params = StdioServerParameters(
+            command="python",
+            args=["scraper.py"]
+        )
+        self.in_memory_saver = InMemorySaver()
+
+        # Define the base system prompt
+        self.base_system_prompt = base_prompt
     def _create_prompt_template(self):
         """
         Create a prompt template with optional session context.

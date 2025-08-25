@@ -36,8 +36,7 @@ async def scrape_url_to_file(url: str) -> str:
     try:
         browser_config = BrowserConfig(headless=True)  # Default browser configuration
         run_config = CrawlerRunConfig(
-            delay_before_return_html=8,
-            wait_until="networkidle",
+            delay_before_return_html=7,
             keep_data_attributes=True,
             keep_attrs=["class", "id"]
         ) 

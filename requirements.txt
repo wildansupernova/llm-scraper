@@ -8,3 +8,4 @@ langmem
 httpx
 python-dotenv
 Flask
+beautifulsoup4
